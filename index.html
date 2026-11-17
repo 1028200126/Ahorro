@@ -1,0 +1,638 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1F3A5F"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ahorro"><link rel="icon" type="image/png" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"></head><body><title>Modelo de planificación y recuperación del ahorro personal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Diseño: panel de datos a la izquierda; resultado, funciones y gráficos a la derecha. Una columna en el celular. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EAEFF5; --ink:#16202E; --muted:#59667A; --line:#D6DDE7;
+  --brand:#1F3A5F; --brand-ink:#FFFFFF;
+  --inc:#1F7A4D; --exp:#C0392B; --sav:#1F3A5F;
+  --ok:#1B7A47; --warn:#9A5B00; --bad:#B3261E;
+  --bad-bg:#FBE6E3; --grid:#E1E7EF; --shade:rgba(31,58,95,.16);
+  --font-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-head:'Space Grotesk','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1621; --surface:#171F2C; --surface-2:#1F293A; --ink:#E7ECF3; --muted:#9AA7B8; --line:#2B3647;
+    --brand:#8DB4F0; --brand-ink:#0F1621;
+    --inc:#4CC38A; --exp:#F0796B; --sav:#8DB4F0;
+    --ok:#4CC38A; --warn:#E3A33B; --bad:#F2877B;
+    --bad-bg:#3A1E1B; --grid:#243043; --shade:rgba(141,180,240,.20);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1621; --surface:#171F2C; --surface-2:#1F293A; --ink:#E7ECF3; --muted:#9AA7B8; --line:#2B3647;
+  --brand:#8DB4F0; --brand-ink:#0F1621;
+  --inc:#4CC38A; --exp:#F0796B; --sav:#8DB4F0;
+  --ok:#4CC38A; --warn:#E3A33B; --bad:#F2877B;
+  --bad-bg:#3A1E1B; --grid:#243043; --shade:rgba(141,180,240,.20);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.5 var(--font-body);
+  padding-block:28px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3{font-family:var(--font-head);margin:0;line-height:1.2;text-wrap:balance}
+h1{font-size:1.9rem;font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.1rem;font-weight:700}
+h3{font-size:.95rem;font-weight:700}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.lede{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:inherit;font-weight:500;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.small{padding:5px 10px;font-size:.85rem}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.note{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:16px;color:var(--muted);font-size:.9rem}
+.grid{display:grid;grid-template-columns:minmax(280px,340px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.panel{display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.lbl{font-weight:600;font-size:.9rem}
+.hint{color:var(--muted);font-size:.82rem;margin:0}
+.inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;background:var(--surface);min-width:0}
+.inp:focus-within{outline:2px solid var(--brand);outline-offset:1px}
+.inp span{padding:0 4px 0 10px;color:var(--muted);white-space:nowrap}
+.inp input{border:0;background:transparent;color:inherit;font:inherit;flex:1;min-width:0;padding:9px 10px 9px 6px;font-variant-numeric:tabular-nums}
+.inp input:focus{outline:none}
+.inp input[readonly]{color:var(--muted)}
+.chk{display:flex;gap:8px;align-items:center;font-size:.88rem;color:var(--muted);cursor:pointer}
+.break{display:flex;flex-direction:column;gap:8px;padding:10px;background:var(--surface-2);border-radius:8px}
+.brkrow{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center;font-size:.88rem}
+.imps{display:flex;flex-direction:column;gap:8px}
+.imp{display:grid;grid-template-columns:72px minmax(0,1fr) 32px;gap:8px;align-items:center}
+.imp .inp span{padding-left:8px}
+.imp .del{height:36px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--muted);cursor:pointer;font-size:1.1rem}
+.imp .del:hover{color:var(--bad)}
+.hero{background:var(--surface-2);border-color:transparent}
+.hero p{margin:0;font-family:var(--font-head);font-size:1.3rem;line-height:1.35;font-weight:500}
+.hero strong{font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+.stat .k{color:var(--muted);font-size:.8rem;font-weight:500}
+.stat .v{font-family:var(--font-head);font-size:1.35rem;font-weight:700;margin:2px 0;font-variant-numeric:tabular-nums}
+.stat .s{color:var(--muted);font-size:.8rem}
+.v.ok{color:var(--ok)} .v.warn{color:var(--warn)} .v.bad{color:var(--bad)}
+.funcs{display:flex;flex-direction:column;gap:6px;margin-top:10px;font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:.88rem}
+.fgroup{padding:10px 12px;background:var(--surface-2);border-radius:8px;display:flex;flex-direction:column;gap:3px;overflow-x:auto}
+.fn{white-space:nowrap}
+.fname{font-weight:700}
+.cond{color:var(--muted)}
+.sub{color:var(--muted);font-size:.85rem;margin:2px 0 0}
+.chartblock{margin-top:16px}
+.chartblock:first-of-type{margin-top:12px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin:8px 0 4px;font-size:.82rem;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:middle;margin-right:6px}
+.legend i.dash{border-top-style:dashed}
+.chart{width:100%;min-width:0}
+.chart svg{display:block}
+.gl{stroke:var(--grid);stroke-width:1}
+.ax{stroke:var(--muted);stroke-width:1}
+.tk{fill:var(--muted);font:11px var(--font-body)}
+.mlabel{fill:var(--muted);font:600 11px var(--font-body)}
+.slider{display:flex;flex-direction:column;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.slider input[type=range]{width:100%;accent-color:var(--brand)}
+.sliderhead{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:.9rem}
+.rd{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+details.card>summary{cursor:pointer;font-family:var(--font-head);font-weight:700;font-size:1.05rem}
+details.card[open]>summary{margin-bottom:12px}
+.tablewrap{overflow-x:auto;max-height:420px;overflow-y:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.88rem}
+th,td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{position:sticky;top:0;background:var(--surface);font-weight:600;color:var(--muted)}
+tr.goal td{background:var(--surface-2);font-weight:600}
+td.neg{color:var(--bad)}
+.badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:var(--surface-2);font-size:.72rem;color:var(--muted);font-weight:600}
+.how ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px}
+.foot{margin-top:20px;color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Modelo de planificación y recuperación del ahorro personal</h1>
+      <p class="lede">Calcula cuándo llegas a tu meta y cuánto la retrasa un imprevisto, usando funciones lineales y por tramos.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btnEjemplo" type="button">Cargar ejemplo</button>
+      <button class="btn" id="btnLimpiar" type="button">Limpiar</button>
+    </div>
+  </header>
+
+  <div class="note" id="exampleNote" hidden>Estás viendo un caso de ejemplo. Cambia los números por los tuyos.</div>
+
+  <div class="grid">
+    <section class="card panel" aria-labelledby="h-datos">
+      <h2 id="h-datos">Tus datos</h2>
+
+      <div class="field">
+        <label for="ing">Ingreso mensual</label>
+        <div class="inp"><span>S/</span><input id="ing" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+      </div>
+
+      <div class="field">
+        <label for="gas">Gasto mensual</label>
+        <div class="inp"><span>S/</span><input id="gas" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+        <label class="chk"><input type="checkbox" id="useBreak"> Calcular sumando mis gastos por categoría</label>
+        <div class="break" id="break" hidden></div>
+      </div>
+
+      <div class="field">
+        <label for="meta">Meta de ahorro</label>
+        <div class="inp"><span>S/</span><input id="meta" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+      </div>
+
+      <div class="field">
+        <span class="lbl">Imprevistos</span>
+        <p class="hint">Un gasto fuera de lo normal en un mes concreto (salud, reparaciones, pagos atrasados).</p>
+        <div class="imps" id="impList"></div>
+        <button class="btn small" id="btnAddImp" type="button">+ Agregar imprevisto</button>
+      </div>
+    </section>
+
+    <div class="col">
+      <section class="card hero" aria-live="polite"><p id="headline"></p></section>
+      <div class="stats" id="stats"></div>
+
+      <section class="card" aria-labelledby="h-fn">
+        <h2 id="h-fn">Tus funciones</h2>
+        <p class="sub">x son los meses y el resultado son soles acumulados.</p>
+        <div class="funcs" id="funcs"></div>
+      </section>
+
+      <section class="card" aria-labelledby="h-graf">
+        <h2 id="h-graf">Gráficos</h2>
+        <div class="chartblock">
+          <h3>Ingresos y gastos acumulados</h3>
+          <p class="sub">La zona sombreada entre las dos líneas es el ahorro.</p>
+          <div class="legend" id="legA"></div>
+          <div class="chart" id="chartA"></div>
+        </div>
+        <div class="chartblock">
+          <h3>Ahorro acumulado</h3>
+          <p class="sub" id="subB">Ahorro = ingresos − gastos.</p>
+          <div class="legend" id="legB"></div>
+          <div class="chart" id="chartB"></div>
+        </div>
+        <div class="slider">
+          <div class="sliderhead"><label for="mes">Mirar un mes</label><output id="mesOut" for="mes"></output></div>
+          <input id="mes" type="range" min="0" max="12" step="1" value="6">
+          <div class="rd" id="readout"></div>
+        </div>
+      </section>
+
+      <details class="card">
+        <summary>Tabla mes a mes</summary>
+        <div class="tablewrap" id="tbl"></div>
+      </details>
+
+      <details class="card how">
+        <summary>Cómo se calcula</summary>
+        <ul>
+          <li><strong>Ahorro mensual</strong> = ingreso mensual − gasto mensual. Es la pendiente de la recta del ahorro.</li>
+          <li><strong>Mes de la meta sin imprevistos</strong> = meta ÷ ahorro mensual.</li>
+          <li><strong>Con imprevistos</strong>, el ahorro es una función por tramos: cada imprevisto baja la recta en su monto desde el mes en que ocurre. Se resuelve la ecuación 100 · x − (imprevistos) = meta en cada tramo.</li>
+          <li><strong>Recuperación:</strong> después del último imprevisto, se divide lo que falta juntar entre los meses que quedan hasta el mes ideal.</li>
+          <li><strong>Deuda:</strong> si el ahorro acumulado queda por debajo de cero, es dinero que se debe.</li>
+        </ul>
+        <p class="foot">Son estimaciones: suponen que el ingreso y el gasto mensual se mantienen iguales cada mes.</p>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $ = function(id){ return document.getElementById(id); };
+var CATS = ['Pasajes','Comida','Internet y celular','Materiales','Salidas','Otros'];
+var EXAMPLE = {ing:'900', gas:'800', meta:'1200', useBreak:true, brk:['150','300','60','80','120','90'], imps:[{mes:'5', monto:'350'}]};
+var EMPTY = {ing:'', gas:'', meta:'', useBreak:false, brk:['','','','','',''], imps:[]};
+var KEY = 'simulador-ahorro-v1';
+var isExample = false;
+var lastModel = null;
+
+/* ---------- formato ---------- */
+function grp(i){ return String(i).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+function n2(v){
+  var r = Math.round(Math.abs(v) * 100) / 100;
+  var p = r.toFixed(2).split('.');
+  var f = p[1].replace(/0+$/, '');
+  return grp(p[0]) + (f ? '.' + f : '');
+}
+function soles(v){ return (v < 0 && Math.round(Math.abs(v) * 100) > 0 ? '−' : '') + 'S/ ' + n2(v); }
+function meses(v){
+  var r = Math.round(v * 10) / 10;
+  return (Number.isInteger(r) ? String(r) : r.toFixed(1)) + (r === 1 ? ' mes' : ' meses');
+}
+function axisNum(t){ return (t < 0 ? '−' : '') + grp(Math.abs(t)); }
+function cuando(n){
+  var r = Math.round(n * 10) / 10;
+  return Number.isInteger(r) ? 'Al final del mes ' + r : 'Durante el mes ' + Math.ceil(n);
+}
+
+/* ---------- entradas ---------- */
+function buildBreak(){
+  var box = $('break');
+  box.innerHTML = '';
+  CATS.forEach(function(c, i){
+    var row = document.createElement('div');
+    row.className = 'brkrow';
+    row.innerHTML = '<label for="brk' + i + '">' + c + '</label><div class="inp"><span>S/</span><input class="brk" id="brk' + i + '" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>';
+    box.appendChild(row);
+  });
+}
+function addImpRow(mes, monto){
+  var row = document.createElement('div');
+  row.className = 'imp';
+  row.innerHTML =
+    '<div class="inp"><input class="impMes" type="number" inputmode="numeric" min="1" step="1" placeholder="Mes" aria-label="Mes del imprevisto"></div>' +
+    '<div class="inp"><span>S/</span><input class="impMonto" type="number" inputmode="decimal" min="0" step="any" placeholder="Monto" aria-label="Monto del imprevisto"></div>' +
+    '<button class="del" type="button" aria-label="Quitar imprevisto">×</button>';
+  row.querySelector('.impMes').value = mes == null ? '' : mes;
+  row.querySelector('.impMonto').value = monto == null ? '' : monto;
+  row.querySelector('.del').addEventListener('click', function(){ row.remove(); touched(); });
+  $('impList').appendChild(row);
+}
+function snapshot(){
+  return {
+    ing: $('ing').value, gas: $('gas').value, meta: $('meta').value, useBreak: $('useBreak').checked,
+    brk: Array.prototype.map.call(document.querySelectorAll('.brk'), function(e){ return e.value; }),
+    imps: Array.prototype.map.call(document.querySelectorAll('.imp'), function(r){
+      return {mes: r.querySelector('.impMes').value, monto: r.querySelector('.impMonto').value};
+    })
+  };
+}
+function restore(s){
+  $('ing').value = s.ing; $('gas').value = s.gas; $('meta').value = s.meta;
+  $('useBreak').checked = !!s.useBreak;
+  Array.prototype.forEach.call(document.querySelectorAll('.brk'), function(e, i){ e.value = (s.brk && s.brk[i] != null) ? s.brk[i] : ''; });
+  $('impList').innerHTML = '';
+  (s.imps || []).forEach(function(i){ addImpRow(i.mes, i.monto); });
+}
+function num(v){ var x = parseFloat(v); return isFinite(x) && x >= 0 ? x : 0; }
+function readState(){
+  var brk = Array.prototype.map.call(document.querySelectorAll('.brk'), function(e){ return num(e.value); });
+  var useBreak = $('useBreak').checked;
+  var gas = useBreak ? brk.reduce(function(a, b){ return a + b; }, 0) : num($('gas').value);
+  var imps = Array.prototype.map.call(document.querySelectorAll('.imp'), function(r){
+    return {mes: Math.round(parseFloat(r.querySelector('.impMes').value)), monto: parseFloat(r.querySelector('.impMonto').value)};
+  }).filter(function(i){ return isFinite(i.mes) && i.mes >= 1 && isFinite(i.monto) && i.monto > 0; });
+  return {ing: num($('ing').value), gas: gas, meta: num($('meta').value), imps: imps};
+}
+function syncBreak(){
+  var on = $('useBreak').checked;
+  $('break').hidden = !on;
+  $('gas').readOnly = on;
+  if (on){
+    var sum = 0;
+    Array.prototype.forEach.call(document.querySelectorAll('.brk'), function(e){ sum += num(e.value); });
+    $('gas').value = sum ? String(Math.round(sum * 100) / 100) : '';
+  }
+}
+
+/* ---------- modelo ---------- */
+function model(s){
+  var a = s.ing - s.gas;
+  var imps = s.imps.slice().sort(function(p, q){ return p.mes - q.mes; });
+  var ms = [];
+  imps.forEach(function(i){ if (ms.indexOf(i.mes) < 0) ms.push(i.mes); });
+  var segs = [], S = 0, prev = 0;
+  for (var k = 0; k <= ms.length; k++){
+    var end = k < ms.length ? ms[k] : Infinity;
+    segs.push({start: prev, end: end, S: S});
+    if (k < ms.length){
+      imps.forEach(function(i){ if (i.mes === ms[k]) S += i.monto; });
+      prev = ms[k];
+    }
+  }
+  var total = S;
+  var impTo = function(n){ return imps.reduce(function(t, i){ return t + (n >= i.mes ? i.monto : 0); }, 0); };
+  var m = {
+    s: s, a: a, imps: imps, segs: segs, total: total,
+    Inc: function(n){ return s.ing * n; },
+    Gas: function(n){ return s.gas * n + impTo(n); },
+    Sav: function(n){ return a * n - impTo(n); },
+    Ideal: function(n){ return a * n; }
+  };
+  m.lastImp = ms.length ? ms[ms.length - 1] : 0;
+  m.reach = function(target){
+    if (a <= 0) return null;
+    for (var i = 0; i < segs.length; i++){
+      var n = (target + segs[i].S) / a;
+      if (n >= segs[i].start - 1e-9 && n < segs[i].end) return Math.max(n, segs[i].start);
+    }
+    return null;
+  };
+  m.N0 = a > 0 && s.meta > 0 ? s.meta / a : null;
+  m.N1 = a > 0 && s.meta > 0 ? m.reach(s.meta) : null;
+  m.delay = (m.N0 != null && m.N1 != null) ? Math.max(0, m.N1 - m.N0) : null;
+  /* deuda */
+  var minV = 0, debts = [], open = null;
+  if (a > 0){
+    segs.forEach(function(g){
+      var v = a * g.start - g.S;
+      if (v < minV) minV = v;
+      if (v < -1e-9){
+        var r = g.S / a;
+        if (open === null) open = g.start;
+        if (r < g.end){ debts.push([open, r]); open = null; }
+      }
+    });
+  } else {
+    minV = Math.min(0, a * 12 - total);
+  }
+  m.minSaldo = minV; m.debts = debts;
+  /* recuperación */
+  m.rec = null;
+  if (m.N0 != null && ms.length){
+    if (m.lastImp < m.N0){
+      var saldo = a * m.lastImp - total;
+      var need = (s.meta - saldo) / (m.N0 - m.lastImp);
+      m.rec = {need: need, gasto: s.ing - need, saldo: saldo};
+    } else {
+      m.rec = {late: true};
+    }
+  }
+  var H;
+  if (a > 0) H = Math.ceil(Math.max(m.N1 || 0, m.N0 || 0, m.lastImp)) + 2;
+  else H = Math.max(12, m.lastImp + 4);
+  m.H = Math.min(60, Math.max(6, H));
+  return m;
+}
+
+/* ---------- textos ---------- */
+function renderHero(m){
+  var s = m.s, el = $('headline');
+  if (!(s.meta > 0) || (s.ing === 0 && s.gas === 0)){
+    el.innerHTML = 'Escribe tu ingreso, tu gasto y tu meta para ver el resultado.';
+  } else if (m.a <= 0){
+    el.innerHTML = 'Gastas ' + (m.a === 0 ? 'lo mismo que ganas' : 'más de lo que ganas') + ' (ahorro mensual de <strong>' + soles(m.a) + '</strong>). Con este ritmo no llegas a la meta: baja el gasto o sube el ingreso.';
+  } else if (!m.imps.length){
+    el.innerHTML = 'Ahorrando <strong>' + soles(m.a) + '</strong> al mes, llegas a tu meta de <strong>' + soles(s.meta) + '</strong> en <strong>' + meses(m.N0) + '</strong>.';
+  } else if (m.delay > 0.0001){
+    el.innerHTML = 'Sin imprevistos llegarías en <strong>' + meses(m.N0) + '</strong>. Con ellos, en <strong>' + meses(m.N1) + '</strong>: se retrasa <strong>' + meses(m.delay) + '</strong>.';
+  } else {
+    el.innerHTML = 'Tus imprevistos llegan después de la fecha de la meta, así que no la cambian: llegas en <strong>' + meses(m.N0) + '</strong>.';
+  }
+}
+function stat(label, value, sub, cls){
+  return '<div class="stat"><div class="k">' + label + '</div><div class="v ' + (cls || '') + '">' + value + '</div><div class="s">' + sub + '</div></div>';
+}
+function renderStats(m){
+  var s = m.s, h = '';
+  h += stat('Ahorro mensual', soles(m.a), 'Ingreso − gasto', m.a <= 0 ? 'bad' : '');
+  if (m.N0 != null){
+    h += stat('Meta sin imprevistos', meses(m.N0), cuando(m.N0));
+  }
+  if (m.imps.length && m.N1 != null){
+    h += stat('Meta con imprevistos', meses(m.N1), cuando(m.N1));
+    h += stat('Retraso', meses(m.delay), m.delay > 0.0001 ? 'Por culpa de los imprevistos' : 'Los imprevistos no la retrasan', m.delay > 0.0001 ? 'warn' : 'ok');
+  }
+  if (m.rec){
+    if (m.rec.late){
+      h += stat('Recuperación', '—', 'El imprevisto llega después de la fecha ideal');
+    } else if (m.rec.need > m.a + 1e-9){
+      h += stat('Para llegar a tiempo', soles(m.rec.need) + ' al mes', 'Gastando ' + soles(Math.max(0, m.rec.gasto)) + ' al mes desde el mes ' + m.lastImp);
+    }
+  }
+  if (m.a > 0 && s.meta > 0 || m.imps.length){
+    if (m.minSaldo < -1e-9){
+      var d = m.debts[0];
+      var rng = d ? 'En deuda del mes ' + Math.round(d[0] * 10) / 10 + ' al ' + Math.round(d[1] * 10) / 10 : 'El saldo queda bajo cero';
+      h += stat('Saldo mínimo', soles(m.minSaldo), rng, 'bad');
+    } else {
+      h += stat('Deuda', 'Sin deuda', 'El saldo nunca baja de cero', 'ok');
+    }
+  }
+  $('stats').innerHTML = h;
+}
+function renderFuncs(m){
+  var s = m.s, h = '';
+  var slope = function(v){ return n2(v) + ' · x'; };
+  h += '<div class="fgroup"><div class="fn"><span class="fname">Ingresos(x)</span> = ' + slope(s.ing) + '</div>';
+  var segs = m.segs;
+  var cond = function(k){
+    var g = segs[k];
+    if (segs.length === 1) return '';
+    if (k === 0) return 'si x < ' + g.end;
+    if (g.end === Infinity) return 'si x ≥ ' + g.start;
+    return 'si ' + g.start + ' ≤ x < ' + g.end;
+  };
+  h += '<div class="fn"><span class="fname">Gastos(x)</span>';
+  if (segs.length === 1){ h += ' = ' + slope(s.gas) + '</div>'; }
+  else {
+    h += '</div>';
+    segs.forEach(function(g, k){
+      h += '<div class="fn">&nbsp;&nbsp;= ' + slope(s.gas) + (g.S ? ' + ' + n2(g.S) : '') + ' <span class="cond">' + cond(k) + '</span></div>';
+    });
+  }
+  h += '</div><div class="fgroup"><div class="fn"><span class="fname">Ahorro(x)</span> = Ingresos(x) − Gastos(x)</div>';
+  if (segs.length === 1){
+    h += '<div class="fn">&nbsp;&nbsp;= ' + n2(m.a) + ' · x</div>';
+  } else {
+    segs.forEach(function(g, k){
+      h += '<div class="fn">&nbsp;&nbsp;= ' + n2(m.a) + ' · x' + (g.S ? ' − ' + n2(g.S) : '') + ' <span class="cond">' + cond(k) + '</span></div>';
+    });
+  }
+  h += '</div>';
+  h += '<div class="sub" style="font-family:var(--font-body)">La pendiente del ahorro es ' + n2(m.a) + ': lo que te sobra cada mes.</div>';
+  $('funcs').innerHTML = h;
+}
+
+/* ---------- gráficos ---------- */
+function niceTicks(min, max, count){
+  if (max <= min) max = min + 1;
+  var raw = (max - min) / count, mag = Math.pow(10, Math.floor(Math.log10(raw))), r = raw / mag;
+  var step = (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag;
+  var lo = Math.floor(min / step + 1e-9) * step, hi = Math.ceil(max / step - 1e-9) * step, t = [];
+  for (var v = lo; v <= hi + step / 2; v += step) t.push(Math.round(v * 1e6) / 1e6);
+  return {min: lo, max: hi, ticks: t};
+}
+function drawChart(el, o){
+  var W = Math.max(260, Math.floor(el.clientWidth)), mobile = W < 480;
+  var Ht = mobile ? 230 : 280, mg = {l: mobile ? 52 : 60, r: mobile ? 10 : 16, t: 10, b: 28};
+  var iw = W - mg.l - mg.r, ih = Ht - mg.t - mg.b;
+  var ty = niceTicks(o.yMin, o.yMax, 5);
+  var xs = function(v){ return mg.l + (v / o.H) * iw; };
+  var ys = function(v){ return mg.t + (1 - (v - ty.min) / (ty.max - ty.min)) * ih; };
+  var f1 = function(v){ return v.toFixed(1); };
+  var P = function(pts){ return pts.map(function(p, i){ return (i ? 'L' : 'M') + f1(xs(p.x)) + ',' + f1(ys(p.y)); }).join(' '); };
+  var s = '<svg width="' + W + '" height="' + Ht + '" viewBox="0 0 ' + W + ' ' + Ht + '" role="img" aria-label="' + o.label + '">';
+  if (ty.min < 0){
+    s += '<rect x="' + mg.l + '" y="' + f1(ys(0)) + '" width="' + iw + '" height="' + f1(ys(ty.min) - ys(0)) + '" fill="var(--bad-bg)"/>';
+  }
+  ty.ticks.forEach(function(t){
+    s += '<line class="gl" x1="' + mg.l + '" x2="' + (W - mg.r) + '" y1="' + f1(ys(t)) + '" y2="' + f1(ys(t)) + '"/>';
+    s += '<text class="tk" x="' + (mg.l - 6) + '" y="' + f1(ys(t) + 4) + '" text-anchor="end">' + axisNum(t) + '</text>';
+  });
+  var rawStep = o.H / (mobile ? 6 : 10), stepX = rawStep <= 1 ? 1 : rawStep <= 2 ? 2 : rawStep <= 5 ? 5 : 10;
+  for (var x = 0; x <= o.H; x += stepX){
+    s += '<text class="tk" x="' + f1(xs(x)) + '" y="' + (Ht - 8) + '" text-anchor="middle">' + x + '</text>';
+  }
+  if (ty.min < 0) s += '<line class="ax" x1="' + mg.l + '" x2="' + (W - mg.r) + '" y1="' + f1(ys(0)) + '" y2="' + f1(ys(0)) + '"/>';
+  (o.areas || []).forEach(function(a){
+    s += '<polygon points="' + a.map(function(p){ return f1(xs(p.x)) + ',' + f1(ys(p.y)); }).join(' ') + '" fill="var(--shade)"/>';
+  });
+  (o.hlines || []).forEach(function(h){
+    s += '<line x1="' + mg.l + '" x2="' + (W - mg.r) + '" y1="' + f1(ys(h.y)) + '" y2="' + f1(ys(h.y)) + '" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="5 4"/>';
+    s += '<text class="mlabel" x="' + (mg.l + 6) + '" y="' + f1(ys(h.y) - 5) + '" text-anchor="start">' + h.label + '</text>';
+  });
+  o.series.forEach(function(se){
+    s += '<path d="' + P(se.pts) + '" fill="none" stroke="' + se.color + '" stroke-width="' + (se.w || 2.4) + '"' + (se.dash ? ' stroke-dasharray="6 4"' : '') + ' stroke-linejoin="round"/>';
+  });
+  (o.markers || []).forEach(function(mk){
+    s += '<circle cx="' + f1(xs(mk.x)) + '" cy="' + f1(ys(mk.y)) + '" r="5.5" fill="' + (mk.hollow ? 'var(--surface)' : mk.color) + '" stroke="' + mk.color + '" stroke-width="2"/>';
+  });
+  if (o.cursor != null){
+    var cx = xs(o.cursor);
+    s += '<line x1="' + f1(cx) + '" x2="' + f1(cx) + '" y1="' + mg.t + '" y2="' + (Ht - mg.b) + '" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3"/>';
+    o.series.forEach(function(se){
+      if (se.f) s += '<circle cx="' + f1(cx) + '" cy="' + f1(ys(se.f(o.cursor))) + '" r="4" fill="' + se.color + '" stroke="var(--surface)" stroke-width="1.5"/>';
+    });
+  }
+  s += '</svg>';
+  el.innerHTML = s;
+}
+function segPts(m, H, fn){
+  var pts = [];
+  m.segs.forEach(function(g){
+    if (g.start >= H) return;
+    var x1 = Math.min(g.end, H);
+    pts.push({x: g.start, y: fn(g.start, g)});
+    pts.push({x: x1, y: fn(x1, g)});
+  });
+  return pts;
+}
+function renderCharts(m){
+  var s = m.s, H = m.H, cur = +$('mes').value;
+  var incF = function(n){ return m.Inc(n); }, gasF = function(n){ return m.Gas(n); }, savF = function(n){ return m.Sav(n); };
+  var incPts = [{x: 0, y: 0}, {x: H, y: m.Inc(H)}];
+  var gasPts = segPts(m, H, function(x, g){ return s.gas * x + g.S; });
+  var areas = [];
+  m.segs.forEach(function(g){
+    if (g.start >= H) return;
+    var x1 = Math.min(g.end, H);
+    areas.push([{x: g.start, y: m.Inc(g.start)}, {x: x1, y: m.Inc(x1)}, {x: x1, y: s.gas * x1 + g.S}, {x: g.start, y: s.gas * g.start + g.S}]);
+  });
+  var yMaxA = Math.max(m.Inc(H), m.Gas(H), 1);
+  $('legA').innerHTML = '<span><i style="border-color:var(--inc)"></i>Ingresos</span><span><i style="border-color:var(--exp)"></i>Gastos' + (m.imps.length ? ' (con imprevistos)' : '') + '</span>';
+  drawChart($('chartA'), {
+    H: H, yMin: 0, yMax: yMaxA, label: 'Ingresos y gastos acumulados por mes', areas: areas, cursor: cur,
+    series: [{pts: incPts, color: 'var(--inc)', f: incF}, {pts: gasPts, color: 'var(--exp)', f: gasF}]
+  });
+
+  var savPts = segPts(m, H, function(x, g){ return m.a * x - g.S; });
+  var series = [];
+  var legB = '';
+  if (m.imps.length){
+    series.push({pts: [{x: 0, y: 0}, {x: H, y: m.Ideal(H)}], color: 'var(--muted)', dash: true, w: 2, f: function(n){ return m.Ideal(n); }});
+    legB += '<span><i class="dash" style="border-color:var(--muted)"></i>Ahorro ideal (sin imprevistos)</span>';
+  }
+  series.push({pts: savPts, color: 'var(--sav)', f: savF});
+  legB += '<span><i style="border-color:var(--sav)"></i>Ahorro' + (m.imps.length ? ' con imprevistos' : '') + '</span>';
+  var vals = savPts.map(function(p){ return p.y; }).concat(m.imps.length ? [m.Ideal(H)] : []);
+  var yMinB = Math.min(0, Math.min.apply(null, vals)), yMaxB = Math.max(s.meta * 1.12, Math.max.apply(null, vals));
+  var markers = [];
+  if (s.meta > 0 && m.a > 0){
+    if (m.N1 != null && m.N1 <= H) markers.push({x: m.N1, y: s.meta, color: 'var(--sav)'});
+    if (m.imps.length && m.N0 != null && m.N0 <= H) markers.push({x: m.N0, y: s.meta, color: 'var(--muted)', hollow: true});
+    legB += '<span><svg width="12" height="12" style="vertical-align:-1px;margin-right:5px"><circle cx="6" cy="6" r="4.5" fill="var(--sav)" stroke="var(--sav)" stroke-width="1.5"/></svg>Meta alcanzada</span>';
+  }
+  $('legB').innerHTML = legB;
+  drawChart($('chartB'), {
+    H: H, yMin: yMinB, yMax: yMaxB, label: 'Ahorro acumulado por mes frente a la meta', cursor: cur, series: series,
+    hlines: s.meta > 0 ? [{y: s.meta, label: 'Meta ' + soles(s.meta)}] : [], markers: markers
+  });
+}
+function renderReadout(m){
+  var v = +$('mes').value, s = m.s;
+  $('mesOut').textContent = 'Mes ' + v;
+  var sav = m.Sav(v), sub = '';
+  if (s.meta > 0){
+    sub = sav >= s.meta ? 'Meta alcanzada' : (sav < 0 ? 'En deuda' : 'Te faltan ' + soles(s.meta - sav));
+  }
+  $('readout').innerHTML =
+    stat('Ingresos acumulados', soles(m.Inc(v)), 'Mes ' + v) +
+    stat('Gastos acumulados', soles(m.Gas(v)), 'Mes ' + v) +
+    stat('Ahorro acumulado', soles(sav), sub, sav < 0 ? 'bad' : (s.meta > 0 && sav >= s.meta ? 'ok' : ''));
+}
+function renderTable(m){
+  var s = m.s, goal = -1;
+  for (var n = 0; n <= m.H; n++){ if (s.meta > 0 && m.Sav(n) >= s.meta - 1e-9){ goal = n; break; } }
+  var mesesImp = m.imps.map(function(i){ return i.mes; });
+  var h = '<table><thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Ahorro</th>' + (m.imps.length ? '<th>Ahorro ideal</th>' : '') + '</tr></thead><tbody>';
+  for (var k = 0; k <= m.H; k++){
+    var sv = m.Sav(k);
+    var badge = (mesesImp.indexOf(k) >= 0 ? '<span class="badge">imprevisto</span>' : '') + (k === goal ? '<span class="badge">meta</span>' : '');
+    h += '<tr' + (k === goal ? ' class="goal"' : '') + '><td>' + k + badge + '</td><td>' + soles(m.Inc(k)) + '</td><td>' + soles(m.Gas(k)) + '</td><td class="' + (sv < 0 ? 'neg' : '') + '">' + soles(sv) + '</td>' + (m.imps.length ? '<td>' + soles(m.Ideal(k)) + '</td>' : '') + '</tr>';
+  }
+  $('tbl').innerHTML = h + '</tbody></table>';
+}
+
+/* ---------- ciclo ---------- */
+function render(){
+  syncBreak();
+  var m = model(readState());
+  lastModel = m;
+  var sl = $('mes');
+  sl.max = m.H;
+  if (+sl.value > m.H) sl.value = m.H;
+  renderHero(m); renderStats(m); renderFuncs(m); renderCharts(m); renderReadout(m); renderTable(m);
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(snapshot())); } catch (e) {}
+}
+function touched(){
+  isExample = false;
+  $('exampleNote').hidden = true;
+  render(); save();
+}
+function loadExample(){
+  restore(EXAMPLE); isExample = true; $('exampleNote').hidden = false; $('mes').value = 6; render(); save();
+}
+function init(){
+  buildBreak();
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { saved = null; }
+  if (saved && typeof saved === 'object' && 'ing' in saved){ restore(saved); render(); }
+  else { loadExample(); }
+  document.querySelector('.panel').addEventListener('input', touched);
+  $('btnAddImp').addEventListener('click', function(){ addImpRow('', ''); var rows = document.querySelectorAll('.impMes'); rows[rows.length - 1].focus(); });
+  $('btnEjemplo').addEventListener('click', loadExample);
+  $('btnLimpiar').addEventListener('click', function(){ restore(EMPTY); isExample = false; $('exampleNote').hidden = true; render(); save(); $('ing').focus(); });
+  $('mes').addEventListener('input', function(){ if (lastModel){ renderCharts(lastModel); renderReadout(lastModel); } });
+  var lastW = 0;
+  var redraw = function(){
+    var w = $('chartA').clientWidth;
+    if (w && w !== lastW && lastModel){ lastW = w; renderCharts(lastModel); }
+  };
+  if (window.ResizeObserver){ new ResizeObserver(redraw).observe($('chartA')); }
+  else { window.addEventListener('resize', redraw); }
+}
+init();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+</body></html>
