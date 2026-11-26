@@ -1,4 +1,18 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1F3A5F"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ahorro"><link rel="icon" type="image/png" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"></head><body><title>Modelo de planificación y recuperación del ahorro personal</title>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1F3A5F"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ahorro"><link rel="icon" type="image/png" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"></head><script>
+if ('serviceWorker' in navigator) {
+  const teniaControlador = !!navigator.serviceWorker.controller;
+  let recargando = false;
+
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+
+  // Cuando llega una versión nueva, recarga la app una vez
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!teniaControlador || recargando) return;
+    recargando = true;
+    location.reload();
+  });
+}
+</script></body><title>Modelo de planificación y recuperación del ahorro personal</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
